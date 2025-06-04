@@ -10,6 +10,7 @@ automatorContainer.appendChild(collapsedText);
 const expandedContent = document.createElement('div');
 expandedContent.classList.add('expanded-content');
 
+// 更新HTML结构顺序
 expandedContent.innerHTML = `
     <button class="close-btn" title="关闭">&times;</button>
     <h2 id="automatorMainTitle">插件文件修改器</h2>
@@ -69,6 +70,8 @@ expandedContent.innerHTML = `
         </div>
     </div> 
 
+    <div id="automatorMessageBox" class="message-box"></div>
+
     <fieldset class="config-section">
         <legend>目标插件配置</legend>
         <div>
@@ -84,9 +87,8 @@ expandedContent.innerHTML = `
 
     <div class="export-section">
          <button id="exportProjectJsonBtn" class="action-btn export-btn" title="导出项目文件为JSON到剪贴板">导出项目为JSON</button>
-    </div>
-    
-    <div id="automatorMessageBox" class="message-box"></div>`;
+    </div>`;
+    // 注意：原MessageBox在最末尾，现在移到了Config区和Export区之前，并从原位置删除。
 
 automatorContainer.appendChild(expandedContent);
 document.body.appendChild(automatorContainer);
@@ -98,7 +100,7 @@ const mainTitle = automatorContainer.querySelector('#automatorMainTitle');
 const fileContentTextarea = automatorContainer.querySelector('#automatorFileContent');
 const currentOpenFileNameDisplay = automatorContainer.querySelector('#currentOpenFileNameDisplay');
 const saveFileBtn = automatorContainer.querySelector('#automatorSaveFileBtn');
-const messageBox = automatorContainer.querySelector('#automatorMessageBox');
+const messageBox = automatorContainer.querySelector('#automatorMessageBox'); // 确保获取的是新位置的 messageBox
 const closeBtn = automatorContainer.querySelector('.close-btn');
 const fileBrowserDiv = automatorContainer.querySelector('#automatorFileBrowser');
 const currentPathDisplay = automatorContainer.querySelector('#automatorCurrentPathDisplay');
@@ -133,7 +135,7 @@ function showMessage(message, type, duration = 5000) {
         clearTimeout(messageBox.timeoutId);
     }
     messageBox.timeoutId = setTimeout(() => {
-        if (messageBox.textContent === message) {
+        if (messageBox.textContent === message) { // Only hide if it's still the same message
             messageBox.style.display = 'none';
         }
     }, duration);
@@ -158,7 +160,7 @@ function getParentPath(currentPath) {
     if (parts.length === 0) return ".";
     let parent = parts.join('/');
     if (parent === "" && currentPath.includes('/')) return ".";
-    if (parent === "") return ".";
+    if (parent === "") return "."; // Covers cases like single folder name "foo" becoming empty
     return parent || ".";
 };
 
@@ -179,12 +181,13 @@ async function configureBaseDirectory(path) {
 
         if (response && response.success) {
             currentConfiguredBasePath = response.configuredPath;
-            baseDirPathInput.value = currentConfiguredBasePath;
+            baseDirPathInput.value = currentConfiguredBasePath; // Update input with potentially resolved path from server
             pluginNameDisplay.textContent = response.pluginName || "名称读取失败";
             configuredPathDisplay.textContent = currentConfiguredBasePath;
-            collapsedText.textContent = response.pluginName || "插件修改器";
-            mainTitle.textContent = `${response.pluginName || "插件"} 文件修改器`;
+            collapsedText.textContent = response.pluginName || "插件修改器"; // Update collapsed title
+            mainTitle.textContent = `${response.pluginName || "插件"} 文件修改器`; // Update expanded title
 
+            // 使用后台脚本保存配置
             await chrome.runtime.sendMessage({
                 action: 'saveConfig',
                 data: {
@@ -195,11 +198,11 @@ async function configureBaseDirectory(path) {
             
             showMessage(`目标插件 "${response.pluginName}" 配置成功！路径: ${currentConfiguredBasePath}`, "success");
             fileInteractionArea.style.display = 'block'; // 显示交互区域
-            currentDirectoryPath = ".";
-            currentOpenFileRelativePath = null;
+            currentDirectoryPath = "."; // 重置浏览路径
+            currentOpenFileRelativePath = null; // 重置当前打开文件
             currentOpenFileNameDisplay.textContent = "未选择文件";
-            fileContentTextarea.value = "";
-            renderDirectory(currentDirectoryPath);
+            fileContentTextarea.value = ""; // 清空文本区
+            renderDirectory(currentDirectoryPath); // 加载根目录
             return true;
         } else {
             const errorMsg = response && response.error ? response.error : "配置失败，未知错误。";
@@ -236,6 +239,7 @@ async function loadInitialConfig() {
         if (response && response.success && response.data && response.data.configuredBaseDir) {
             const data = response.data;
             baseDirPathInput.value = data.configuredBaseDir;
+            // pluginNameDisplay & configuredPathDisplay will be set by configureBaseDirectory
             const success = await configureBaseDirectory(data.configuredBaseDir);
             if (!success) {
                  showMessage("上次配置的路径无效或加载失败，请重新设置。", "error");
@@ -360,11 +364,15 @@ async function loadFileContent(filePathToLoad) {
 // --- 插件展开与关闭 ---
 automatorContainer.addEventListener('click', (event) => {
     if (event.target.classList.contains('close-btn')) {
-        return; // Close button has its own handler
+        return; 
     }
-    // Prevent re-triggering if clicking inside already expanded content, unless it's specifically the collapsed text area
     if (isExpanded && expandedContent.contains(event.target)) {
-        return;
+        // If click is inside already expanded content, and not on the container itself (i.e., on specific elements), do nothing here.
+        // This prevents collapsing when clicking on buttons, inputs, etc. inside the expanded panel.
+        // If we want click on empty space within expanded panel to do something, this needs adjustment.
+        if (event.target !== expandedContent) { // Allow click on direct background of expandedContent to do nothing.
+            return;
+        }
     }
 
     if (!isExpanded) {
@@ -419,7 +427,7 @@ saveFileBtn.addEventListener('click', async () => {
             console.error('Plugin Automator: 保存文件失败:', error);
             showMessage(`保存或同步文件失败: ${error.message}`, 'error');
         }
-    }, true); // requireFileOpen = true
+    }, true); 
 });
 
 // --- 文件浏览器导航 ---
@@ -578,7 +586,8 @@ function handleDataFromPage(data) {
     }, requireFileOpenForMode); 
 };
 
-document.addEventListener('copy', () => { /* No automatic action */ });
+document.addEventListener('copy', () => { /* No automatic action on copy */ });
+
 document.addEventListener('keydown', (event) => {
     if (event.ctrlKey && event.shiftKey && event.altKey && (event.key === 'X' || event.key === 'x')) {
         event.preventDefault();
@@ -600,7 +609,7 @@ exportProjectJsonBtn.addEventListener('click', async () => {
             const response = await chrome.runtime.sendMessage({ action: 'exportProjectJson' });
             console.log("Plugin Automator: Response from exportProjectJson:", response);
             if (response && response.success && response.data) {
-                const jsonString = JSON.stringify(response.data, null, 2);
+                const jsonString = JSON.stringify(response.data, null, 2); // Beautify JSON output
                 await navigator.clipboard.writeText(jsonString);
                 showMessage("项目JSON数据已复制到剪贴板！ (" + response.data.length + " files)", "success");
             } else {
@@ -613,3 +622,6 @@ exportProjectJsonBtn.addEventListener('click', async () => {
         }
     });
 });
+
+// Initial load logic will be triggered on first click/expand if not configured
+console.log("Plugin Automator: content.js loaded and event listeners should be active.");
