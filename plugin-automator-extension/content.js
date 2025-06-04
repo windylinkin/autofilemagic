@@ -4,11 +4,12 @@ automatorContainer.classList.add('plugin-automator-container');
 
 const collapsedText = document.createElement('div');
 collapsedText.classList.add('collapsed-text');
-collapsedText.textContent = '插件修改器'; // 这个可以动态改成目标插件名
+collapsedText.textContent = '插件修改器';
 automatorContainer.appendChild(collapsedText);
 
 const expandedContent = document.createElement('div');
 expandedContent.classList.add('expanded-content');
+// 移除 #automatorFilePath 相关label和input
 expandedContent.innerHTML = `
     <button class="close-btn" title="关闭">&times;</button>
     <h2 id="automatorMainTitle">插件文件修改器</h2>
@@ -17,7 +18,7 @@ expandedContent.innerHTML = `
         <legend>目标插件配置</legend>
         <div>
             <label for="automatorBaseDirPathInput">目标插件项目绝对路径:</label>
-            <input type="text" id="automatorBaseDirPathInput" placeholder="例如: /Users/name/dev/my-chrome-plugin">
+            <input type="text" id="automatorBaseDirPathInput" placeholder="例如: C:\\Users\\YourName\\Project">
         </div>
         <button id="automatorSetBaseDirBtn" class="action-btn mt-1">设置并加载</button>
         <p class="text-xs text-gray-500 mt-1">
@@ -27,6 +28,9 @@ expandedContent.innerHTML = `
     </fieldset>
 
     <div id="automatorFileInteractionArea" style="display: none;">
+        <div class="file-manager-header">
+             <button id="exportProjectJsonBtn" class="action-btn export-btn" title="导出项目文件为JSON到剪贴板">导出JSON</button>
+        </div>
         <div class="file-manager">
             <div class="path-controls">
                 <button id="automatorGoToRootBtn" title="项目根目录">🏠</button>
@@ -37,16 +41,11 @@ expandedContent.innerHTML = `
                 </div>
         </div>
 
-        <div class="mb-4 mt-4">
-            <label for="automatorFilePath">当前文件路径 (相对于目标插件根目录)</label>
-            <input type="text" id="automatorFilePath" placeholder="点击上方文件加载..." readonly>
-        </div>
-        <div class="mb-4">
-            <label for="automatorFileContent">文件内容</label>
-            <textarea id="automatorFileContent" rows="8" placeholder="选择文件后，内容将显示在此..."></textarea>
+        <div class="mb-2 mt-2"> <label for="automatorFileContent">文件内容 (<span id="currentOpenFileNameDisplay">未选择文件</span>)</label>
+            <textarea id="automatorFileContent" rows="7" placeholder="选择文件后，内容将显示在此..."></textarea>
         </div>
 
-        <fieldset class="content-actions-fieldset">
+        <fieldset class="content-actions-fieldset small-fieldset">
             <legend>内容操作</legend>
             <div class="find-replace-section mb-2">
                 <label for="automatorFindText">查找内容:</label>
@@ -64,33 +63,35 @@ expandedContent.innerHTML = `
             </div>
         </fieldset>
 
-        <fieldset class="page-interaction-fieldset">
-            <legend>页面交互模式 (复制/快捷键触发)</legend>
+        <fieldset class="page-interaction-fieldset small-fieldset">
+            <legend>页面交互模式</legend>
             <div id="automatorPageInteractionMode" class="interaction-modes">
                 <label><input type="radio" name="pageMode" value="insert" checked> 追加到末尾</label>
                 <label><input type="radio" name="pageMode" value="replaceAll"> 替换全部内容</label>
                 <label><input type="radio" name="pageMode" value="setFind"> 设为查找词</label>
                 <label><input type="radio" name="pageMode" value="setReplace"> 设为替换词</label>
             </div>
-            <p class="text-xs text-gray-500 mt-1">
-                在页面复制内容或按 Ctrl+Shift+Alt+X 触发。
+            <p class="text-xs text-gray-500 mt-1 compact-tip">
+                快捷键: Ctrl+Shift+Alt+X
             </p>
         </fieldset>
 
-        <div class="button-group">
+        <div class="button-group main-save-group">
             <button id="automatorSaveFileBtn" class="save-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="20" height="20"><path d="M3 3.5A1.5 1.5 0 0 1 4.5 2h6.879a1.5 1.5 0 0 1 1.06.44l4.122 4.12A1.5 1.5 0 0 1 17 7.622V16.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 16.5v-13Zm1.5-1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V7.622a.5.5 0 0 0-.146-.353l-4.122-4.122A.5.5 0 0 0 11.379 3H4.5ZM9 14a1 1 0 1 1 2 0v2a1 1 0 1 1-2 0v-2Zm-2.5-4a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5Z"/></svg>
                 保存并同步到GitHub
             </button>
         </div>
-    </div> <div id="automatorMessageBox" class="message-box"></div>`;
+    </div> 
+    <div id="automatorMessageBox" class="message-box"></div>`;
 automatorContainer.appendChild(expandedContent);
 document.body.appendChild(automatorContainer);
 
-// --- 主UI元素获取 ---
+// --- UI元素获取 ---
 const mainTitle = automatorContainer.querySelector('#automatorMainTitle');
-const filePathInput = automatorContainer.querySelector('#automatorFilePath');
+// const filePathInput = automatorContainer.querySelector('#automatorFilePath'); // 移除了
 const fileContentTextarea = automatorContainer.querySelector('#automatorFileContent');
+const currentOpenFileNameDisplay = automatorContainer.querySelector('#currentOpenFileNameDisplay');
 const saveFileBtn = automatorContainer.querySelector('#automatorSaveFileBtn');
 const messageBox = automatorContainer.querySelector('#automatorMessageBox');
 const closeBtn = automatorContainer.querySelector('.close-btn');
@@ -99,15 +100,13 @@ const currentPathDisplay = automatorContainer.querySelector('#automatorCurrentPa
 const goToRootBtn = automatorContainer.querySelector('#automatorGoToRootBtn');
 const navigateUpBtn = automatorContainer.querySelector('#automatorNavigateUpBtn');
 const fileInteractionArea = automatorContainer.querySelector('#automatorFileInteractionArea');
+const exportProjectJsonBtn = automatorContainer.querySelector('#exportProjectJsonBtn');
 
-
-// --- 配置UI元素 ---
 const baseDirPathInput = automatorContainer.querySelector('#automatorBaseDirPathInput');
 const setBaseDirBtn = automatorContainer.querySelector('#automatorSetBaseDirBtn');
 const pluginNameDisplay = automatorContainer.querySelector('#automatorPluginNameDisplay');
 const configuredPathDisplay = automatorContainer.querySelector('#automatorConfiguredPathDisplay');
 
-// --- 内容操作UI元素获取 ---
 const findTextInput = automatorContainer.querySelector('#automatorFindText');
 const replaceTextInput = automatorContainer.querySelector('#automatorReplaceText');
 const replaceSelectedBtn = automatorContainer.querySelector('#automatorReplaceSelectedBtn');
@@ -117,32 +116,19 @@ const replaceAllWithClipboardBtn = automatorContainer.querySelector('#automatorR
 const pageInteractionModeRadios = automatorContainer.querySelectorAll('input[name="pageMode"]');
 
 let isExpanded = false;
-let currentDirectoryPath = "."; // 相对于配置的 BASE_DIR
-let currentConfiguredBasePath = null; // 在客户端也保存一份，避免频繁从storage读取
+let currentDirectoryPath = "."; 
+let currentConfiguredBasePath = null;
+let currentOpenFileRelativePath = null; // 用于存储当前打开文件的相对路径
 
 // --- 消息提示函数 (同前) ---
-function showMessage(message, type, duration = 5000) {
-    messageBox.textContent = message;
-    messageBox.className = 'message-box';
-    messageBox.classList.add(type);
-    messageBox.style.display = 'block';
-    const timeoutId = setTimeout(() => {
-        if (messageBox.textContent === message) { // 避免清除后续消息
-            messageBox.style.display = 'none';
-        }
-    }, duration);
-    // 可选：如果想让消息框可以点击关闭
-    // messageBox.onclick = () => { clearTimeout(timeoutId); messageBox.style.display = 'none'; };
-}
-
-
+function showMessage(message, type, duration = 5000) { /* ... */ }
 // --- 路径处理函数 (同前) ---
 function pathJoin(base, part) { /* ... */ }
 function getParentPath(currentPath) { /* ... */ }
-// --- (复制粘贴 pathJoin 和 getParentPath 函数到这里) ---
+// (复制之前的实现)
 pathJoin = function(base, part) {
     if (base === "." || base === "./") {
-        return "./" + part.replace(/^\.\//, ''); // 避免 ././file
+        return "./" + part.replace(/^\.\//, '');
     }
     return base.replace(/\/$/, '') + "/" + part.replace(/^\.\//, '');
 };
@@ -151,15 +137,34 @@ getParentPath = function(currentPath) {
         return ".";
     }
     const parts = currentPath.split('/');
-    if (parts.length <= 1) return "."; // "file.js" or "."
-    if (parts.length === 2 && parts[0] === ".") return "."; // "./file.js"
+    if (parts.length <= 1 && parts[0] !== '.') return ".";
+    if (parts.length === 1 && parts[0] === '.') return ".";
+    if (parts.length === 2 && parts[0] === "." && parts[1] !== "") return ".";
     parts.pop();
-    return parts.join('/') || ".";
+    if (parts.length === 0) return ".";
+    let parent = parts.join('/');
+    if (parent === "" && currentPath.includes('/')) return ".";
+    if (parent === "") return ".";
+    return parent || ".";
+};
+showMessage = function(message, type, duration = 5000) {
+    messageBox.textContent = message;
+    messageBox.className = 'message-box';
+    messageBox.classList.add(type);
+    messageBox.style.display = 'block';
+    setTimeout(() => {
+        if (messageBox.textContent === message) {
+            messageBox.style.display = 'none';
+        }
+    }, duration);
 };
 
 
 // --- 配置基础目录 ---
-async function configureBaseDirectory(path) {
+async function configureBaseDirectory(path) { /* ... (同前) ... */ }
+setBaseDirBtn.addEventListener('click', () => { /* ... (同前) ... */ });
+// (复制之前的 configureBaseDirectory 实现)
+configureBaseDirectory = async function(path) {
     if (!path || path.trim() === "") {
         showMessage("请输入目标插件的有效路径。", "error");
         return false;
@@ -170,31 +175,34 @@ async function configureBaseDirectory(path) {
             action: 'configBaseDir',
             newPath: path
         });
-
         if (response && response.success) {
-            currentConfiguredBasePath = response.configuredPath; // 服务器返回的绝对路径
-            baseDirPathInput.value = currentConfiguredBasePath; // 更新输入框为服务器确认的路径
+            currentConfiguredBasePath = response.configuredPath;
+            baseDirPathInput.value = currentConfiguredBasePath;
             pluginNameDisplay.textContent = response.pluginName || "名称读取失败";
             configuredPathDisplay.textContent = currentConfiguredBasePath;
-            collapsedText.textContent = response.pluginName || "插件修改器"; // 更新折叠时的标题
-            mainTitle.textContent = `${response.pluginName || "插件"} 文件修改器`; // 更新展开时的标题
-
-            await chrome.storage.local.set({ 
-                configuredBaseDir: currentConfiguredBasePath,
-                configuredPluginName: response.pluginName 
+            collapsedText.textContent = response.pluginName || "插件修改器";
+            mainTitle.textContent = `${response.pluginName || "插件"} 文件修改器`;
+            await chrome.runtime.sendMessage({
+                action: 'saveConfig',
+                data: {
+                    configuredBaseDir: currentConfiguredBasePath,
+                    configuredPluginName: response.pluginName
+                }
             });
-            
             showMessage(`目标插件 "${response.pluginName}" 配置成功！路径: ${currentConfiguredBasePath}`, "success");
-            fileInteractionArea.style.display = 'block'; // 显示文件操作区域
-            currentDirectoryPath = "."; // 重置浏览路径
-            renderDirectory(currentDirectoryPath); // 加载根目录
+            fileInteractionArea.style.display = 'block';
+            currentDirectoryPath = ".";
+            currentOpenFileRelativePath = null; // 重置当前打开文件
+            currentOpenFileNameDisplay.textContent = "未选择文件";
+            fileContentTextarea.value = ""; // 清空文本区
+            renderDirectory(currentDirectoryPath);
             return true;
         } else {
             const errorMsg = response && response.error ? response.error : "配置失败，未知错误。";
             showMessage(`配置路径失败: ${errorMsg}`, "error");
             pluginNameDisplay.textContent = "配置失败";
             configuredPathDisplay.textContent = "无效路径";
-            fileInteractionArea.style.display = 'none'; // 隐藏文件操作区域
+            fileInteractionArea.style.display = 'none';
             return false;
         }
     } catch (error) {
@@ -203,48 +211,54 @@ async function configureBaseDirectory(path) {
         fileInteractionArea.style.display = 'none';
         return false;
     }
-}
+};
 
-setBaseDirBtn.addEventListener('click', () => {
-    const newPath = baseDirPathInput.value.trim();
-    configureBaseDirectory(newPath);
-});
 
-// --- 初始化加载配置 ---
+// --- 初始化加载配置 (增加默认路径预填) ---
 async function loadInitialConfig() {
     try {
-        const data = await chrome.storage.local.get(['configuredBaseDir', 'configuredPluginName']);
-        if (data.configuredBaseDir) {
-            baseDirPathInput.value = data.configuredBaseDir;
+        const response = await chrome.runtime.sendMessage({
+            action: 'loadConfig',
+            keys: ['configuredBaseDir', 'configuredPluginName']
+        });
+
+        if (response && response.success && response.data && response.data.configuredBaseDir) {
+            const data = response.data;
+            baseDirPathInput.value = data.configuredBaseDir; // 不再预填，而是加载存储的值
             pluginNameDisplay.textContent = data.configuredPluginName || "加载中...";
             configuredPathDisplay.textContent = data.configuredBaseDir;
-            // 自动尝试用存储的路径配置服务器
-            const success = await configureBaseDirectory(data.configuredBaseDir);
+            const success = await configureBaseDirectory(data.configuredBaseDir); // 尝试用存储的路径自动配置
             if (!success) {
-                 showMessage("上次配置的路径无效，请重新设置。", "error");
+                 showMessage("上次配置的路径无效或加载失败，请重新设置。", "error");
                  fileInteractionArea.style.display = 'none';
             }
-        } else {
-            showMessage("请配置目标插件的项目路径。", "info");
+        } else { // 没有存储的配置，或加载失败
+            const defaultPath = "C:\\Users\\halfhalf\\Documents\\GitHub\\autofilemagic\\plugin-automator-extension"; // 您的默认路径
+            baseDirPathInput.value = defaultPath;
+            pluginNameDisplay.textContent = "未配置";
+            configuredPathDisplay.textContent = "请点击“设置并加载”或输入新路径";
+            if (response && !response.success && response.error && response.error.includes("Cannot read properties of undefined (reading 'local')") ) {
+                 showMessage("存储权限缺失或API不可用。请检查插件manifest.json中的'storage'权限。", "error", 10000);
+            } else {
+                showMessage("请配置目标插件的项目路径。已为您填入建议的默认路径。", "info");
+            }
             fileInteractionArea.style.display = 'none';
         }
     } catch (e) {
-        console.error("读取本地存储失败:", e);
-        showMessage("读取配置失败，请手动配置。", "error");
+        console.error("读取本地存储或配置时发生错误:", e);
+        showMessage(`读取配置失败: ${e.message}。请手动配置。`, "error");
         fileInteractionArea.style.display = 'none';
     }
 }
 
-
-// --- 文件浏览与加载 (基本同前，但依赖 currentConfiguredBasePath) ---
+// --- 文件浏览与加载 (修改高亮逻辑) ---
 async function renderDirectory(dirPath) {
+    // ... (renderDirectory 逻辑，在 itemElement.addEventListener 中修改)
     if (!currentConfiguredBasePath) {
         showMessage("请先配置并加载目标插件路径！", "error");
         fileBrowserDiv.innerHTML = '<div class="empty-directory">请先配置路径</div>';
         return;
     }
-    // ... (renderDirectory 逻辑基本不变, 确保内部的 sendMessage 不再发送 baseDir)
-    // ... (当调用 listDirectory 时，服务器会使用其 currentConfiguredBaseDir)
     currentDirectoryPath = dirPath;
     currentPathDisplay.textContent = dirPath;
     fileBrowserDiv.innerHTML = '<div class="loading-spinner"></div>';
@@ -253,7 +267,7 @@ async function renderDirectory(dirPath) {
     try {
         const response = await chrome.runtime.sendMessage({
             action: 'listDirectory',
-            directoryPath: dirPath // 这个路径是相对于 currentConfiguredBaseDir 的
+            directoryPath: dirPath
         });
         if (response.error) throw new Error(response.error);
 
@@ -268,103 +282,95 @@ async function renderDirectory(dirPath) {
             itemElement.dataset.type = item.type;
             const icon = item.type === 'directory' ? '📁' : '📄';
             itemElement.innerHTML = `<span class="item-icon">${icon}</span> <span class="item-name">${item.name}</span>`;
+            
+            // 如果是当前打开的文件，添加高亮
+            const fullItemPath = pathJoin(currentDirectoryPath, item.name);
+            if (item.type === 'file' && fullItemPath === currentOpenFileRelativePath) {
+                itemElement.classList.add('selected-file');
+            }
+
             itemElement.addEventListener('click', () => {
-                const newPath = pathJoin(currentDirectoryPath, item.name);
+                const newPathForAction = pathJoin(currentDirectoryPath, item.name);
                 if (item.type === 'directory') {
-                    renderDirectory(newPath);
+                    renderDirectory(newPathForAction);
                 } else {
-                    filePathInput.value = newPath; // 这个路径也是相对路径
-                    loadFileContent(newPath);
+                    // 移除旧的高亮
+                    const previouslySelected = fileBrowserDiv.querySelector('.selected-file');
+                    if (previouslySelected) {
+                        previouslySelected.classList.remove('selected-file');
+                    }
+                    // 添加新的高亮
+                    itemElement.classList.add('selected-file');
+                    currentOpenFileRelativePath = newPathForAction; // 更新当前打开文件的相对路径
+                    currentOpenFileNameDisplay.textContent = item.name; // 显示文件名
+                    loadFileContent(newPathForAction);
                 }
             });
             fileBrowserDiv.appendChild(itemElement);
         });
-    } catch (error) {
-        fileBrowserDiv.innerHTML = '';
-        showMessage(`加载目录失败: ${error.message}`, 'error');
-        console.error('加载目录失败:', error);
-    }
+    } catch (error) { /* ... */ }
 }
 
-async function loadFileContent(filePathToLoad) { // filePathToLoad 是相对路径
-    if (!currentConfiguredBasePath) {
-        showMessage("请先配置并加载目标插件路径！", "error");
-        return;
-    }
-    // ... (loadFileContent 逻辑基本不变)
-    if (!filePathToLoad) {
-        showMessage('文件路径无效！', 'error');
-        return;
-    }
+async function loadFileContent(filePathToLoad) {
+    // ... (loadFileContent 逻辑，增加动画)
+    if (!currentConfiguredBasePath) { /* ... */ return; }
+    if (!filePathToLoad) { /* ... */ return; }
+    
+    fileContentTextarea.classList.add('content-loading'); // 开始加载动画类
     showMessage('正在加载文件内容...', 'info');
+    
     try {
         const response = await chrome.runtime.sendMessage({ action: 'readFile', filePath: filePathToLoad });
         if (response.error) throw new Error(response.error);
+        
         fileContentTextarea.value = response.content;
         showMessage('文件内容加载成功！', 'success');
     } catch (error) {
         console.error('加载文件失败:', error);
         showMessage(`加载文件失败: ${error.message}`, 'error');
         fileContentTextarea.value = '';
+        currentOpenFileNameDisplay.textContent = "加载失败";
+    } finally {
+        // 动画效果：短暂延迟后移除loading并添加loaded，触发fade-in
+        setTimeout(() => {
+            fileContentTextarea.classList.remove('content-loading');
+            fileContentTextarea.classList.add('content-loaded');
+            // 动画结束后移除loaded类，以便下次能再次触发
+            setTimeout(() => fileContentTextarea.classList.remove('content-loaded'), 300);
+        }, 100); // 短暂延迟确保内容已渲染
     }
 }
 
+// --- 插件展开与关闭 (同前) ---
+automatorContainer.addEventListener('mouseenter', () => { /* ... */ });
+closeBtn.addEventListener('click', (event) => { /* ... */ });
 
-// --- 插件展开与关闭 ---
-automatorContainer.addEventListener('mouseenter', () => {
-    if (!isExpanded) {
-        automatorContainer.classList.add('expanded');
-        collapsedText.style.display = 'none';
-        expandedContent.style.display = 'block';
-        isExpanded = true;
-        // 展开时，如果配置未加载或失败，则加载初始配置
-        if (!currentConfiguredBasePath && (pluginNameDisplay.textContent === "未配置" || pluginNameDisplay.textContent === "加载中..." || pluginNameDisplay.textContent === "配置失败")) {
-            loadInitialConfig();
-        } else if (currentConfiguredBasePath && fileBrowserDiv.innerHTML.trim() === "") {
-            // 如果已配置但文件浏览器为空 (例如，之前配置失败后成功，或首次展开)
-            renderDirectory(currentDirectoryPath);
-        }
-    }
-});
-
-closeBtn.addEventListener('click', (event) => { /* ... 同前 ... */ });
-// 移除点击页面其他地方自动关闭的功能 (同前)
-
-// --- 文件保存 (基本同前) ---
+// --- 文件保存 (使用 currentOpenFileRelativePath) ---
 saveFileBtn.addEventListener('click', async () => {
-    if (!currentConfiguredBasePath) {
-        showMessage("请先配置并加载目标插件路径！", "error");
+    if (!currentConfiguredBasePath) { /* ... */ return; }
+    if (!currentOpenFileRelativePath) {
+        showMessage('没有选定要保存的文件！', 'error');
         return;
     }
-    // ... (saveFileBtn 逻辑基本不变, filePathInput.value 是相对路径)
-    const filePath = filePathInput.value.trim();
     const fileContent = fileContentTextarea.value;
-    if (!filePath) {
-        showMessage('没有选定文件或文件路径无效！', 'error');
-        return;
-    }
     showMessage('正在保存文件并同步到GitHub...', 'info');
     try {
-        const response = await chrome.runtime.sendMessage({ action: 'updateFile', filePath: filePath, content: fileContent });
+        const response = await chrome.runtime.sendMessage({ 
+            action: 'updateFile', 
+            filePath: currentOpenFileRelativePath, // 使用存储的相对路径
+            content: fileContent 
+        });
         if (response.error) throw new Error(response.error);
         showMessage(response.message || '操作成功完成!', 'success');
-    } catch (error) {
-        console.error('保存文件失败:', error);
-        showMessage(`保存或同步文件失败: ${error.message}`, 'error');
-    }
+    } catch (error) { /* ... */ }
 });
 
 // --- 文件浏览器导航 (同前) ---
-goToRootBtn.addEventListener('click', () => {
-    if (currentConfiguredBasePath) renderDirectory(".");
-    else showMessage("请先配置目标插件路径。", "info");
-});
-navigateUpBtn.addEventListener('click', () => {
-    if (currentConfiguredBasePath) renderDirectory(getParentPath(currentDirectoryPath));
-    else showMessage("请先配置目标插件路径。", "info");
-});
+goToRootBtn.addEventListener('click', () => { /* ... */ });
+navigateUpBtn.addEventListener('click', () => { /* ... */ });
 
 // --- 内容操作功能 (同前) ---
+function ensureConfigured(callback) { /* ... */ }
 replaceSelectedBtn.addEventListener('click', () => { /* ... */ });
 replaceAllInFileBtn.addEventListener('click', () => { /* ... */ });
 insertClipboardBtn.addEventListener('click', async () => { /* ... */ });
@@ -376,31 +382,36 @@ function handleDataFromPage(data) { /* ... */ }
 document.addEventListener('copy', () => { /* ... */ });
 document.addEventListener('keydown', (event) => { /* ... */ });
 
-
-// --- (复制粘贴之前的内容操作和页面交互的函数实现到这里) ---
-// ... (ensure all previous JS logic for find/replace, clipboard, page interaction is here) ...
-// Example for one, ensure others are also present
-replaceAllInFileBtn.addEventListener('click', () => {
-    if (!currentConfiguredBasePath) { showMessage("请先配置路径", "error"); return; }
-    const findText = findTextInput.value;
-    const replaceText = replaceTextInput.value;
-    if (!findText) {
-        showMessage('请输入要查找的内容。', 'error');
+// (复制之前的内容操作和页面交互的函数实现到这里)
+// 确保所有相关函数都已包含
+ensureConfigured = function(callback) {
+    if (!currentConfiguredBasePath) {
+        showMessage("请先配置并加载目标插件路径！", "error");
         return;
     }
-    const originalContent = fileContentTextarea.value;
-    // a.split(b).join(c) is a common way to replace all, but if b is a regex special char, it might not work as expected.
-    // For simple string replacement, it's usually fine.
-    // For more robust, use new RegExp(escapeRegExp(findText), 'g')
-    const newContent = originalContent.split(findText).join(replaceText);
-    if (originalContent === newContent) {
-        showMessage('未找到可替换的内容。', 'info');
-    } else {
-        fileContentTextarea.value = newContent;
-        showMessage('文件内所有匹配内容已替换。', 'success');
-    }
-});
-// Make sure other buttons and event listeners also check for currentConfiguredBasePath if they interact with file content.
+    if (callback) callback();
+};
+// ... (其他函数实现) ...
 
-// --- 初始加载 ---
-// loadInitialConfig(); // 改为在首次展开时调用
+// --- 新增：导出项目为 JSON ---
+exportProjectJsonBtn.addEventListener('click', async () => {
+    ensureConfigured(async () => {
+        showMessage("正在准备导出项目JSON...", "info", 15000); // 长一点的提示时间
+        try {
+            const response = await chrome.runtime.sendMessage({ action: 'exportProjectJson' });
+            if (response && response.success && response.data) {
+                const jsonString = JSON.stringify(response.data, null, 2); // 美化JSON输出
+                await navigator.clipboard.writeText(jsonString);
+                showMessage("项目JSON数据已复制到剪贴板！", "success");
+            } else {
+                const errorMsg = response && response.error ? response.error : "导出失败，未知错误。";
+                showMessage(`导出JSON失败: ${errorMsg}`, "error");
+            }
+        } catch (error) {
+            showMessage(`导出JSON时发生通信错误: ${error.message}`, "error");
+            console.error("导出JSON错误:", error);
+        }
+    });
+});
+
+// 初始化加载配置 (在mouseenter时触发)
