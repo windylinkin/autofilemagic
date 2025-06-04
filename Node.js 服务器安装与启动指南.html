@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<!-- saved from url=(0073)https://jiesuan.jujia618.com/html/1_3aedd1ad348f44a09586a2292bae2173.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js 服务器安装与启动指南</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5em;
+        }
+        code {
+            background-color: #e9ecef;
+            padding: 0.2em 0.5em;
+            border-radius: 4px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.9em;
+            color: #c7254e; /* Bootstrap's code color */
+        }
+        pre {
+            background-color: #2d2d2d; /* Dark background for code blocks */
+            color: #f8f8f2; /* Light text for dark background */
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap; /* Allow wrapping but preserve spaces */
+            word-wrap: break-word; /* Break long words */
+        }
+        .step {
+            margin-bottom: 1.5em;
+            padding-bottom: 1.5em;
+            border-bottom: 1px dashed #bdc3c7;
+        }
+        .step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .command {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .output {
+            color: #27ae60; /* Green for success output */
+            font-style: italic;
+        }
+        .note {
+            background-color: #e8f6fd;
+            border-left: 4px solid #3498db;
+            padding: 12px;
+            margin-top: 1em;
+            border-radius: 4px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 0.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Node.js 本地服务器 (server.js) 安装与启动指南</h1>
+
+        <div class="step">
+            <h2>1. 先决条件</h2>
+            <p>在开始之前，请确保您的系统上已安装以下软件：</p>
+            <ul>
+                <li>
+                    <strong>Node.js</strong>: 您可以从 <a href="https://nodejs.org/" target="_blank">Node.js 官方网站</a> 下载并安装。建议安装LTS（长期支持）版本。安装Node.js通常会自动安装npm。
+                </li>
+                <li>
+                    <strong>npm (Node Package Manager)</strong>: 通常随Node.js一同安装。您可以通过在终端或命令提示符中运行 <code>node -v</code> 和 <code>npm -v</code> 来检查它们是否已成功安装及其版本。
+                </li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h2>2. 项目设置与依赖安装</h2>
+            <p>这些步骤需要在您的命令行终端（如 Terminal、Command Prompt、PowerShell 或 Git Bash）中执行。</p>
+
+            <h3>2.1. 导航到服务器脚本目录</h3>
+            <p>打开您的终端，并使用 <code>cd</code> 命令导航到包含 <code>server.js</code> (之前提到的 <code>1.js</code>) 文件的目录。假设您的 <code>server.js</code> 文件位于项目中的某个特定位置，例如 <code>your-project-root/scripts/</code>：</p>
+            <pre><code class="command">cd path/to/your-project-root/scripts/</code></pre>
+            <p class="note">请将 <code>path/to/your-project-root/scripts/</code> 替换为 <code>server.js</code> 文件所在的实际路径。</p>
+
+            <h3>2.2. 初始化项目 (如果需要)</h3>
+            <p>如果该目录还没有 <code>package.json</code> 文件，建议初始化一个新的Node.js项目。这将帮助管理依赖项。在 <code>server.js</code> 所在的目录中运行：</p>
+            <pre><code class="command">npm init -y</code></pre>
+            <p>这会创建一个默认的 <code>package.json</code> 文件。</p>
+
+            <h3>2.3. 安装依赖项</h3>
+            <p><code>server.js</code> 脚本依赖于一些外部模块。您需要使用npm来安装它们。根据提供的服务器脚本 (<code>1.js</code>) 内容，主要的依赖是：</p>
+            <ul>
+                <li><code>express</code></li>
+                <li><code>body-parser</code></li>
+                <li><code>cors</code></li>
+            </ul>
+            <p>在终端中运行以下命令来安装这些依赖项：</p>
+            <pre><code class="command">npm install express body-parser cors</code></pre>
+            <p>这会将这些模块下载到项目的 <code>node_modules</code> 文件夹中，并更新 <code>package.json</code> 和 <code>package-lock.json</code> 文件。</p>
+        </div>
+
+        <div class="step">
+            <h2>3. 启动服务器</h2>
+            <p>完成上述设置后，您可以启动Node.js服务器。</p>
+            <p>在包含 <code>server.js</code> 文件的目录中，运行以下命令：</p>
+            <pre><code class="command">node server.js</code></pre>
+            <p class="note">如果您之前的服务器脚本文件名仍然是 <code>1.js</code>，则应运行 <code>node 1.js</code>。</p>
+        </div>
+
+        <div class="step">
+            <h2>4. 预期输出与验证</h2>
+            <p>如果服务器成功启动，您应该会在终端看到类似以下的输出信息：</p>
+            <pre class="output">本地开发服务器正在运行于 http://localhost:3000
+服务器将操作的基目录: [您的BASE_DIR路径]
+请确保您的目标浏览器插件项目位于: [您的BASE_DIR路径]
+请安装并启用“插件自动化修改器”浏览器扩展程序。</pre>
+            <p>这意味着服务器正在监听端口 <code>3000</code>。只要此终端窗口保持打开并且服务器正在运行，您的浏览器扩展程序就应该能够与其通信。</p>
+            <p>要停止服务器，您通常可以在运行服务器的终端窗口中按下 <code>Ctrl+C</code>。</p>
+        </div>
+
+        <div class="step">
+            <h2>5. 注意事项</h2>
+            <ul>
+                <li><strong>BASE_DIR 路径</strong>: 服务器启动时会打印出它将操作的基目录（<code>BASE_DIR</code>）。请确保此路径正确指向您的插件项目文件。您在之前的对话中提到，您修改后的路径为 <code>const BASE_DIR = path.resolve(__dirname, '..', 'autofilemagic/plugin-automator-extension');</code>。服务器脚本会使用这个路径来读写文件。</li>
+                <li><strong>防火墙</strong>: 在某些情况下，防火墙可能会阻止Node.js服务器接受来自浏览器扩展的连接。如果遇到连接问题，请检查您的防火墙设置，确保允许Node.js在端口3000上进行通信。</li>
+                <li><strong>错误排查</strong>: 如果在安装依赖或启动服务器时遇到错误，请仔细阅读终端中的错误消息。它们通常会提供关于问题原因的线索。常见的错误可能包括网络问题（导致npm安装失败）、端口已被占用或代码中的语法错误。</li>
+            </ul>
+        </div>
+    </div>
+
+<button id="magic-ai-open-plugin-button" style="position: fixed; bottom: 20px; right: 20px; z-index: 2147483640; padding: 10px 18px; background-color: rgb(0, 123, 255); color: white; border: none; border-radius: 25px; cursor: pointer; box-shadow: rgba(0, 0, 0, 0.25) 0px 3px 12px; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif; transition: background-color 0.2s;">打开 Magic</button><div class="plugin-automator-container"><div class="collapsed-text">插件修改器</div><div class="expanded-content">
+    <button class="close-btn" title="关闭">×</button>
+    <h2 id="automatorMainTitle">插件文件修改器</h2>
+
+    <div id="automatorFileInteractionArea" style="display: none;">
+        <div class="file-manager">
+            <div class="path-controls">
+                <button id="automatorGoToRootBtn" title="项目根目录">🏠</button>
+                <button id="automatorNavigateUpBtn" title="上一级">⬆️</button>
+                <span id="automatorCurrentPathDisplay">./</span>
+            </div>
+            <div id="automatorFileBrowser" class="file-browser-list">
+                </div>
+        </div>
+
+        <div class="mb-2 mt-2">
+            <label for="automatorFileContent">文件内容 (<span id="currentOpenFileNameDisplay">未选择文件</span>)</label>
+            <textarea id="automatorFileContent" rows="7" placeholder="选择文件后，内容将显示在此..."></textarea>
+        </div>
+
+        <fieldset class="content-actions-fieldset small-fieldset">
+            <legend>内容操作</legend>
+            <div class="find-replace-section mb-2">
+                <label for="automatorFindText">查找内容:</label>
+                <input type="text" id="automatorFindText" class="small-input" placeholder="输入要查找的文本">
+                <label for="automatorReplaceText">替换为:</label>
+                <input type="text" id="automatorReplaceText" class="small-input" placeholder="输入替换后的文本">
+                <div class="button-group-inline mt-1">
+                    <button id="automatorReplaceSelectedBtn" class="action-btn">替换选中</button>
+                    <button id="automatorReplaceAllInFileBtn" class="action-btn">全部替换(文件内)</button>
+                </div>
+            </div>
+            <div class="button-group-inline mb-2">
+                <button id="automatorInsertClipboardBtn" class="action-btn">粘贴板内容插入光标处</button>
+                <button id="automatorReplaceAllWithClipboardBtn" class="action-btn">粘贴板内容替换全部</button>
+            </div>
+        </fieldset>
+
+        <fieldset class="page-interaction-fieldset small-fieldset">
+            <legend>页面交互模式</legend>
+            <div id="automatorPageInteractionMode" class="interaction-modes">
+                <label><input type="radio" name="pageMode" value="insert" checked=""> 追加到末尾</label>
+                <label><input type="radio" name="pageMode" value="replaceAll"> 替换全部内容</label>
+                <label><input type="radio" name="pageMode" value="setFind"> 设为查找词</label>
+                <label><input type="radio" name="pageMode" value="setReplace"> 设为替换词</label>
+            </div>
+            <p class="text-xs text-gray-500 mt-1 compact-tip">
+                快捷键: Ctrl+Shift+Alt+X
+            </p>
+        </fieldset>
+
+        <div class="button-group main-save-group">
+            <button id="automatorSaveFileBtn" class="save-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="20" height="20"><path d="M3 3.5A1.5 1.5 0 0 1 4.5 2h6.879a1.5 1.5 0 0 1 1.06.44l4.122 4.12A1.5 1.5 0 0 1 17 7.622V16.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 16.5v-13Zm1.5-1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V7.622a.5.5 0 0 0-.146-.353l-4.122-4.122A.5.5 0 0 0 11.379 3H4.5ZM9 14a1 1 0 1 1 2 0v2a1 1 0 1 1-2 0v-2Zm-2.5-4a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5Z"></path></svg>
+                保存并同步到GitHub
+            </button>
+        </div>
+    </div> 
+
+    <div id="automatorMessageBox" class="message-box"></div>
+
+    <fieldset class="config-section">
+        <legend>目标插件配置</legend>
+        <div>
+            <label for="automatorBaseDirPathInput">目标插件项目绝对路径:</label>
+            <input type="text" id="automatorBaseDirPathInput" placeholder="例如: C:\Users\YourName\Project">
+        </div>
+        <button id="automatorSetBaseDirBtn" class="action-btn mt-1">设置并加载</button>
+        <p class="text-xs text-gray-500 mt-1">
+            当前目标插件: <strong id="automatorPluginNameDisplay">未配置</strong><br>
+            路径: <span id="automatorConfiguredPathDisplay">未配置</span>
+        </p>
+    </fieldset>
+
+    <div class="export-section">
+         <button id="exportProjectJsonBtn" class="action-btn export-btn" title="导出项目文件为JSON到剪贴板">导出项目为JSON</button>
+    </div></div></div></body></html>
