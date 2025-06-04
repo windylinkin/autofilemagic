@@ -400,3 +400,62 @@
 
 .plugin-automator-container .text-xs { font-size: 0.75rem; } /* text-xs */
 .plugin-automator-container .text-gray-500 { color: #6b7280; } /* Tailwind gray-500 */
+/* content.css - 在原有样式基础上添加或修改 */
+
+/* ... (保留您原有的样式) ... */
+
+.plugin-automator-container .config-section {
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    background-color: #f9fafb;
+}
+
+.plugin-automator-container .config-section legend {
+    padding: 0 0.5rem;
+    font-size: 0.95rem; /* Slightly larger legend */
+    font-weight: 600; /* Bold legend */
+    color: #1f2937; /* Darker gray */
+}
+
+.plugin-automator-container .config-section label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.35rem;
+}
+
+.plugin-automator-container .config-section input[type="text"] {
+    width: 100%; /* Full width */
+    padding: 0.6rem 0.75rem; /* Slightly more padding */
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    box-sizing: border-box; /* Important for full width */
+}
+.plugin-automator-container .config-section input[type="text"]:focus {
+     outline: none;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+}
+
+.plugin-automator-container .config-section .action-btn {
+    padding: 0.6rem 1rem; /* Consistent padding with other action buttons */
+    font-size: 0.875rem;
+    /* Re-use existing .action-btn styles if suitable, or define specifically */
+}
+
+.plugin-automator-container #automatorPluginNameDisplay {
+    font-weight: bold;
+    color: #2563eb; /* Tailwind blue-600 */
+}
+.plugin-automator-container #automatorConfiguredPathDisplay {
+    font-style: italic;
+    color: #4b5563; /* Tailwind gray-600 */
+    word-break: break-all; /* Allow long paths to wrap */
+}
+
+/* Ensure .mt-1 is defined if used, e.g. */
+.plugin-automator-container .mt-1 { margin-top: 0.25rem; }
