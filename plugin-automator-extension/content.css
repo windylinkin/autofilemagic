@@ -588,3 +588,25 @@ body { /* 应用到注入的iframe或直接到页面body，取决于插件结构
     padding: 0.6rem 1rem; /* 统一主要按钮的padding */
     font-size: 0.9rem;
 }
+.plugin-automator-container .export-section {
+    margin-top: 1rem; /* 与上方配置区域的间距 */
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background-color: #f9fafb;
+    text-align: center; /* 让按钮居中，如果只有一个按钮 */
+}
+
+.plugin-automator-container .export-section .export-btn {
+    /* 您可能已经为 .export-btn 定义了样式，如果没有，可以在这里添加 */
+    /* 例如，使其与其他 action-btn 类似或更突出 */
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    background-color: #10b981; /* 绿色 */
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+}
+.plugin-automator-container .export-section .export-btn:hover {
+    background-color: #059669;
+}
