@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "插件自动化修改器",
+    "name": "插件自动化修改器啊",
     "version": "1.0",
     "description": "在当前页面修改本地浏览器插件文件并同步到GitHub。",
     "action": {
@@ -8,7 +8,8 @@
     },
     "permissions": [
         "activeTab",
-        "scripting"
+        "scripting",
+        "storage"
     ],
     "host_permissions": [
         "http://localhost:3000/"
