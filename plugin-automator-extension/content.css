@@ -459,3 +459,132 @@
 
 /* Ensure .mt-1 is defined if used, e.g. */
 .plugin-automator-container .mt-1 { margin-top: 0.25rem; }
+/* content.css - 在原有样式基础上添加或修改 */
+
+/* ... (保留大部分原有样式) ... */
+
+body { /* 应用到注入的iframe或直接到页面body，取决于插件结构 */
+    font-size: 14px; /* 尝试减小基础字号 */
+}
+
+.plugin-automator-container.expanded {
+    width: 480px; /* 略微减小宽度 */
+    /* max-height: 95vh; (保持或按需调整) */
+    padding: 15px; /* 减小内边距 */
+}
+
+.plugin-automator-container h2 {
+    font-size: 1.25rem; /* 减小标题字号 */
+    margin-bottom: 0.8rem;
+}
+
+.plugin-automator-container fieldset {
+    padding: 0.6rem; /* 减小fieldset内边距 */
+    margin-bottom: 0.8rem; /* 减小fieldset间距 */
+}
+.plugin-automator-container legend {
+    font-size: 0.9rem;
+    padding: 0 0.4rem;
+}
+
+/* 使配置区域更紧凑 */
+.plugin-automator-container .config-section input[type="text"] {
+    padding: 0.5rem 0.6rem; 
+    font-size: 0.85rem;
+}
+.plugin-automator-container .config-section .action-btn {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+}
+.plugin-automator-container .config-section .text-xs {
+    margin-top: 0.4rem !important; /* !important 来覆盖之前的 .mt-1 */
+}
+
+
+.plugin-automator-container .file-manager-header {
+    display: flex;
+    justify-content: flex-end; /* 按钮靠右 */
+    margin-bottom: 0.5rem;
+}
+.plugin-automator-container .export-btn {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.8rem !important;
+    background-color: #10b981 !important; /* 绿色 */
+    color: white !important;
+    border: none;
+}
+.plugin-automator-container .export-btn:hover {
+    background-color: #059669 !important;
+}
+
+
+.plugin-automator-container .file-browser-list {
+    max-height: 180px; /* 减小文件列表高度 */
+    font-size: 0.85rem; /* 列表项字号 */
+}
+.plugin-automator-container .file-browser-item {
+    padding: 0.4rem 0.6rem; /* 列表项内边距 */
+}
+.plugin-automator-container .file-browser-item.selected-file {
+    background-color: #dbeafe; /* Tailwind blue-100 for selection */
+    font-weight: bold;
+    color: #1e40af; /* Tailwind blue-800 */
+}
+.plugin-automator-container .file-browser-item.selected-file .item-icon {
+    color: #1e40af;
+}
+
+
+.plugin-automator-container textarea#automatorFileContent {
+    min-height: 100px; /* 减小文本区最小高度 */
+    font-size: 0.85rem;
+    transition: opacity 0.3s ease-in-out; /* 用于动画 */
+}
+.plugin-automator-container textarea#automatorFileContent.content-loading {
+    opacity: 0.3;
+}
+.plugin-automator-container textarea#automatorFileContent.content-loaded {
+    opacity: 1;
+    /* animation: fadeInContent 0.3s ease-in-out; (如果需要更复杂的动画) */
+}
+/* @keyframes fadeInContent { from { opacity: 0.3; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } } */
+
+
+.plugin-automator-container .small-fieldset legend {
+    font-size: 0.85rem;
+}
+.plugin-automator-container .small-fieldset .action-btn,
+.plugin-automator-container .small-fieldset .small-input {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+}
+.plugin-automator-container .small-fieldset .button-group-inline {
+    gap: 0.4rem;
+}
+
+.plugin-automator-container .compact-tip {
+    margin-top: 0.2rem !important;
+    margin-bottom: 0 !important;
+}
+
+.plugin-automator-container .main-save-group {
+    margin-top: 0.8rem; /* 减小与上方元素的间距 */
+}
+
+.plugin-automator-container .mb-2 { margin-bottom: 0.5rem !important; }
+.plugin-automator-container .mt-2 { margin-top: 0.5rem !important; }
+.plugin-automator-container .mb-4 { margin-bottom: 0.8rem !important; } /* 原1rem */
+.plugin-automator-container .mt-4 { margin-top: 0.8rem !important; } /* 原1rem */
+
+
+/* 微调使整体更紧凑 */
+.plugin-automator-container .path-controls {
+    padding: 0.4rem 0.6rem;
+}
+.plugin-automator-container #automatorCurrentPathDisplay {
+    font-size: 0.8rem;
+}
+.plugin-automator-container .button-group button {
+    padding: 0.6rem 1rem; /* 统一主要按钮的padding */
+    font-size: 0.9rem;
+}
